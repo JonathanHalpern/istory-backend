@@ -1,9 +1,10 @@
 var http = require('http'),
     fileSystem = require('fs'),
-    path = require('path');
-    url = require('url');
-    querystring = require('querystring');
-    ffmpeg = require('fluent-ffmpeg');
+    path = require('path'),
+    url = require('url'),
+    querystring = require('querystring'),
+    ffmpeg = require('fluent-ffmpeg'),
+    rimraf = require('rimraf');
 
 const stories = require('./stories');
 const port = 9000;
@@ -13,7 +14,7 @@ const buildStory = (story, name, gender, npcArray) => (
         let relativePath = '';
         switch(clip.type){
             case "main":
-            relativePath = `${story.name}/${story.name}-${clip.number}.mp3`
+            relativePath = `stories/${story.name}/${story.name}-${clip.number}.mp3`
             break;
             case "name":
             relativePath = `names/${name}/${name}-${clip.number}.mp3`
@@ -25,7 +26,7 @@ const buildStory = (story, name, gender, npcArray) => (
             relativePath = `pronouns/${clip.specifier}/${gender}-${clip.number}.mp3`
             break;
         }
-        const path = `${__dirname}/${relativePath}`
+        const path = `${__dirname}/audioFiles/${relativePath}`
         return {
             ...clip,
             path
@@ -37,7 +38,7 @@ const applyFilters = (clip, index) => (
     new Promise((resolve)=> {
         const { adelay=0, volume=1 } = clip;
         ffmpeg(clip.path).complexFilter(`adelay=${adelay}|${adelay},volume=${volume}`)
-            .saveToFile(`pieces/${index}.mp3`)
+            .saveToFile(`_tmp/pieces/${index}.mp3`)
             .on('end', function() {
                 resolve();
             })
@@ -45,18 +46,19 @@ const applyFilters = (clip, index) => (
 )
 
 const getMergedSong = (storyArray) => {
-    const outPath = 'temp.mp3'
+    const outPath = '_tmp/main.mp3'
     return Promise.all(storyArray.map((clip, index) =>
         applyFilters(clip, index)
     )).then(()=>(
         new Promise(function(resolve, reject){
             let combined = ffmpeg();
             for(let i = 0; i < storyArray.length; i++) {
-                let element = `${__dirname}/pieces/${i}.mp3`
+                let element = `${__dirname}/_tmp/pieces/${i}.mp3`
                 combined.mergeAdd(element);
             }
             combined.on('end', function() {
                 console.log('files have been merged succesfully');
+                rimraf(`${__dirname}/_tmp/pieces/*`, function () { console.log('done'); });
                 resolve()
             })
                 .on('error', function(err) {
@@ -79,7 +81,7 @@ const requestHandler = (request, response) => {
     const storyArray = buildStory(story, name, gender, npcArray);
     getMergedSong(storyArray).then(()=>{
 
-        const filePath = path.join(__dirname, 'temp.mp3');
+        const filePath = path.join(__dirname, '_tmp/main.mp3');
         const stat = fileSystem.statSync(filePath);
 
         response.writeHead(200, {
