@@ -1,5 +1,11 @@
 module.exports = {
     name: 'leicester-end',
+    meta: {
+        name: 'Mice on the line',
+        key: 'leicester-end',
+        length: 10,
+        description: 'a story',
+    },
     clips: [{
         type: 'name',
         number: 1,

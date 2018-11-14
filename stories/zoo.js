@@ -1,5 +1,11 @@
 module.exports = {
     name: 'zoo',
+    meta: {
+        name: 'Zoo',
+        key: 'zoo',
+        length: 10,
+        description: 'a story',
+    },
     clips: [
     {
         type: 'name',

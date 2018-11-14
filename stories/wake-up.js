@@ -1,5 +1,11 @@
 module.exports = {
     name: 'wake-up',
+    meta: {
+        name: 'Wake up',
+        key: 'wakeUp',
+        length: 10,
+        description: 'a story',
+    },
     clips: [{
         type: 'name',
         number: 1,
