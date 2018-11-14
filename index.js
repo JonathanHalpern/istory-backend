@@ -80,7 +80,7 @@ const requestHandler = async(request, response) => {
     let params = querystring.parse(parsedUrl.query);
     console.log(params)
     const { name, storyId, gender, npcs } = params;
-    const npcArray = npcs.split(',');
+    const npcArray = npcs ? npcs.split(',') : [];
 
     const story = stories[storyId];
     const storyArray = buildStory(story, name, gender, npcArray);
